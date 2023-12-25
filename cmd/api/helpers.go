@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
+	"ratrace.darieldejesus.com/internal/validator"
 )
 
 type envelope map[string]any
@@ -97,4 +99,58 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dest an
 		return errors.New("body must only contain a single value")
 	}
 	return nil
+}
+
+// The readString returns a string from the query string or the provided
+// default value if no matching key could be found.
+func (app *application) readString(qs url.Values, key string, defaultValue string) string {
+	s := qs.Get(key)
+	if s == "" {
+		return defaultValue
+	}
+	return s
+}
+
+// The readCSV reads a string value from the value string and then splits it
+// into a slice on the comma character. Returns defaultValue if no matching key could be found.
+// func (app *application) readCSV(qs url.Values, key string, defaultValue []string) []string {
+// 	csv := qs.Get(key)
+// 	if csv == "" {
+// 		return defaultValue
+// 	}
+
+// 	return strings.Split(csv, ",")
+// }
+
+// The readInt reads a string value from the query string and converts it to an integer.
+// If no matching key could be found it returns the default value.
+// If found value is not an integer, an error message is recorded in the validator instance.
+func (app *application) readInt(qs url.Values, key string, defaultValue int, v *validator.Validator) int {
+	s := qs.Get(key)
+	if s == "" {
+		return defaultValue
+	}
+
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		v.AddError(key, "must be an integer value")
+		return defaultValue
+	}
+
+	return i
+}
+
+// background executes the given function in a goroutine
+// and captures any unexpected panic.
+func (app *application) background(fn func()) {
+	go func() {
+		// Defer to catch any panic
+		defer func() {
+			if err := recover(); err != nil {
+				app.logger.PrintError(fmt.Errorf("%s", err), nil)
+			}
+		}()
+
+		fn()
+	}()
 }

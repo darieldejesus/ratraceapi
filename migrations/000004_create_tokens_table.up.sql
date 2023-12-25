@@ -1,0 +1,7 @@
+CREATE TABLE tokens (
+  hash CHAR(64) NOT NULL PRIMARY KEY,
+  user_id INT NOT NULL,
+  expiry DATETIME NOT NULL,
+  scope VARCHAR(255) NOT NULL,
+  FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+);

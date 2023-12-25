@@ -9,6 +9,39 @@ import (
 	"ratrace.darieldejesus.com/internal/validator"
 )
 
+func (app *application) listPartiesHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Title string
+		data.Filters
+	}
+
+	v := validator.New()
+	qs := r.URL.Query()
+
+	input.Title = app.readString(qs, "title", "")
+	input.Page = app.readInt(qs, "page", 1, v)
+	input.PageSize = app.readInt(qs, "page_size", 20, v)
+	input.Sort = app.readString(qs, "sort", "id")
+	input.SortSafeList = []string{"id", "title", "created_at", "-id", "-title", "-created_at"}
+
+	if data.ValidateFilters(v, input.Filters); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	parties, metadata, err := app.models.Parties.GetAll(input.Title, input.Filters)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"parties": parties, "metadata": metadata}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
 func (app *application) createPartyHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Title        string  `json:"title"`
@@ -47,8 +80,6 @@ func (app *application) createPartyHandler(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
-
-	fmt.Fprintf(w, "%+v\n", input)
 }
 
 func (app *application) showPartyHandler(w http.ResponseWriter, r *http.Request) {

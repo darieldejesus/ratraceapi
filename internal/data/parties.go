@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"ratrace.darieldejesus.com/internal/validator"
@@ -29,32 +30,62 @@ func ValidateParty(v *validator.Validator, party *Party) {
 	// v.Check(validator.Unique(party.Participants), "participants", "must not contain duplicated values")
 }
 
-func (m PartyModel) Insert(party *Party) error {
-	stmt := `INSERT INTO parties (title, active, createdAt)
-	VALUES (?, ?, UTC_TIMESTAMP())`
+func (m PartyModel) GetAll(title string, filters Filters) ([]*Party, Metadata, error) {
+	stmt := fmt.Sprintf(`SELECT COUNT(*) OVER(), id, title, active, created_at FROM parties
+	WHERE active = true
+	AND (LOWER(title) = LOWER(?) OR ? = '')
+	ORDER BY %s %s, id ASC
+	LIMIT ? OFFSET ?`, filters.sortColumn(), filters.sortDirection())
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	result, err := m.DB.ExecContext(ctx, stmt, party.Title, party.Active)
+	args := []any{title, title, filters.limit(), filters.offset()}
+
+	rows, err := m.DB.QueryContext(
+		ctx,
+		stmt,
+		args...,
+	)
+
 	if err != nil {
-		return err
+		return nil, Metadata{}, err
 	}
 
-	id, err := result.LastInsertId()
-	if err != nil {
-		return err
+	defer rows.Close()
+
+	totalRecords := 0
+	parties := []*Party{}
+
+	for rows.Next() {
+		var party Party
+		err := rows.Scan(
+			&totalRecords,
+			&party.ID,
+			&party.Title,
+			&party.Active,
+			&party.CreatedAt,
+		)
+		if err != nil {
+			return nil, Metadata{}, err
+		}
+		parties = append(parties, &party)
 	}
 
-	party.ID = id
-	return nil
+	if err = rows.Err(); err != nil {
+		return nil, Metadata{}, err
+	}
+
+	metadata := calculateMetadata(totalRecords, filters.Page, filters.PageSize)
+
+	return parties, metadata, nil
 }
 
 func (m PartyModel) Get(id int64) (*Party, error) {
 	if id < 1 {
 		return nil, ErrRecordNotFound
 	}
-	stmt := `SELECT sleep(20), id, title, active, createdAt 
+	stmt := `SELECT id, title, active, created_at 
 	FROM parties WHERE id = ? AND active = true`
 
 	var party Party
@@ -78,6 +109,27 @@ func (m PartyModel) Get(id int64) (*Party, error) {
 		}
 	}
 	return &party, nil
+}
+
+func (m PartyModel) Insert(party *Party) error {
+	stmt := `INSERT INTO parties (title, active, created_at)
+	VALUES (?, ?, UTC_TIMESTAMP())`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	result, err := m.DB.ExecContext(ctx, stmt, party.Title, party.Active)
+	if err != nil {
+		return err
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return err
+	}
+
+	party.ID = id
+	return nil
 }
 
 func (m PartyModel) Update(party *Party) error {

@@ -74,6 +74,8 @@ func NotEmptyList[T any](value []T) bool {
 	return len(value) > 0
 }
 
+// MaxChars returns true when the number of runes in value is less or equal to n.
+// Erroneous and short encodings are treated as single runes of width 1 byte.
 func MaxChars(value string, n int) bool {
 	return utf8.RuneCountInString(value) <= n
 }
