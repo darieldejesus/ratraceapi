@@ -22,6 +22,9 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPatch, "/v1/parties/:id", app.requirePermission("parties:write", app.updatePartyHandler))
 	router.HandlerFunc(http.MethodDelete, "/v1/parties/:id", app.requirePermission("parties:write", app.deletePartyHandler))
 
+	// Professions
+	router.HandlerFunc(http.MethodPost, "/v1/professions", app.createProfessionHandler)
+	router.HandlerFunc(http.MethodGet, "/v1/professions/:id", app.showProfessionHandler)
 	// Tokens
 	router.HandlerFunc(http.MethodPost, "/v1/tokens/authenticate", app.createAuthTokenHandler)
 

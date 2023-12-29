@@ -19,7 +19,7 @@ confirm:
 run/api:
 	go run ./cmd/api \
 		-port=${RR_PORT} \
-		-db-dsn=${RR_DB_DSN} \
+		-db-dsn="${RR_DB_DSN}" \
 		-db-max-open-conns=${RR_DB_MAX_OPEN_CONNS} \
 		-db-max-idle-conns=${RR_DB_MAX_IDLE_CONNS} \
 		-db-max-idle-time=${RR_DB_MAX_IDLE_TIME} \
@@ -43,7 +43,7 @@ migrations/new:
 .PHONY: migrations/up
 migrations/up: confirm
 	@echo 'Running up migrations...'
-	migrate -path ./migrations -database="mysql://${DB_CONN_STRING}" up
+	migrate -path ./migrations -database="mysql://${RR_DB_DSN}" up
 
 ###################################
 # QUALITY CONTROL

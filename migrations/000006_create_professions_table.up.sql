@@ -1,0 +1,16 @@
+CREATE TABLE professions (
+  id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(255) NOT NULL,
+  salary INTEGER NOT NULL,
+  savings INTEGER NOT NULL,
+  taxes INTEGER NOT NULL,
+  mortgage INTEGER NOT NULL,
+  school_loan INTEGER NOT NULL,
+  car_loan INTEGER NOT NULL,
+  credit_card INTEGER NOT NULL,
+  other_expenses INTEGER NOT NULL,
+  bank_loan INTEGER NOT NULL,
+  child_expense INTEGER NOT NULL,
+  active BOOLEAN NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
