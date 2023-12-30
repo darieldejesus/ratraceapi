@@ -36,8 +36,8 @@ run/api:
 ## migrations/new name=$1: create a new database migration
 .PHONY: migrations/new
 migrations/new:
-	@echo 'Creating migration file'
-	migrate create -seq -ext=.sql -dir=./migrations $(filter-out $@,$(MAKECMDGOALS))
+	@echo 'Creating migration files for ${name}'
+	migrate create -seq -ext=.sql -dir=./migrations ${name}
 
 ## migrations/up: apply all up database migrations
 .PHONY: migrations/up

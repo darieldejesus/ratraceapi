@@ -25,6 +25,11 @@ func (app *application) routes() http.Handler {
 	// Professions
 	router.HandlerFunc(http.MethodPost, "/v1/professions", app.createProfessionHandler)
 	router.HandlerFunc(http.MethodGet, "/v1/professions/:id", app.showProfessionHandler)
+
+	// Cards
+	router.HandlerFunc(http.MethodPost, "/v1/cards", app.requirePermission("cards:write", app.createCardHandler))
+	router.HandlerFunc(http.MethodGet, "/v1/cards/:id", app.requirePermission("cards:read", app.showCardHandler))
+
 	// Tokens
 	router.HandlerFunc(http.MethodPost, "/v1/tokens/authenticate", app.createAuthTokenHandler)
 
