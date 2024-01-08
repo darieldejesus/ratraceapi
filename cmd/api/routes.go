@@ -30,6 +30,10 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPost, "/v1/cards", app.requirePermission("cards:write", app.createCardHandler))
 	router.HandlerFunc(http.MethodGet, "/v1/cards/:id", app.requirePermission("cards:read", app.showCardHandler))
 
+	// Boards
+	router.HandlerFunc(http.MethodPost, "/v1/boards", app.requirePermission("boards:write", app.createBoardHandler))
+	router.HandlerFunc(http.MethodGet, "/v1/boards/:id", app.requirePermission("boards:write", app.showBoardHandler))
+
 	// Tokens
 	router.HandlerFunc(http.MethodPost, "/v1/tokens/authenticate", app.createAuthTokenHandler)
 

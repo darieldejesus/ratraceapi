@@ -11,6 +11,7 @@ var (
 )
 
 type Models struct {
+	Boards      BoardModel
 	Cards       CardModel
 	Parties     PartyModel
 	Permissions PermissionModel
@@ -21,6 +22,7 @@ type Models struct {
 
 func NewModel(db *sql.DB) Models {
 	return Models{
+		Boards:      BoardModel{DB: db},
 		Cards:       CardModel{DB: db},
 		Parties:     PartyModel{DB: db},
 		Permissions: PermissionModel{DB: db},
